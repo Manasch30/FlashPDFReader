@@ -23,6 +23,8 @@ When Adobe Flash was officially deprecated, **every major PDF reader (Adobe Acro
 
 ## ✨ Key Features
 
+- 📑 **Multi-Tab PDF Reader**: Open and switch between multiple textbooks side-by-side in separate closable tabs without losing your active page position.
+- 🕒 **Recent PDFs History**: Quick-access **"Recent PDFs ▾"** toolbar menu that remembers previously opened books across sessions for 1-click re-opening.
 - 🔊 **Native Embedded Audio Playback**: Automatically extracts embedded audio streams and renders interactive speaker buttons (`🔊`) directly on PDF pages with variable speed playback control (`0.75×` to `2.0×`).
 - 💡 **Universal Answer Layer Unhiding**: Generic spatial bounding-box proximity and group stem extraction engine that reveals hidden answer layers and table answer cells across any Flash textbook without hardcoded rules.
 - 🌙 **Smart Dark Mode**: High-contrast pixel-level dark mode pipeline (`numpy` + `PyMuPDF`) that converts bright page backgrounds to slate (`#1e2026`) while preserving vibrant red answer text with anti-aliased edge smoothing.

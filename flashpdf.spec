@@ -19,9 +19,7 @@ a = Analysis(
     ['src/flashpdf/app.py'],
     pathex=['src'],
     binaries=numpy_binaries + flex_binaries,
-    datas=[
-        ('src/flashpdf/static', 'flashpdf/static'),
-    ] + numpy_datas,
+    datas=numpy_datas,
     hiddenimports=[
         'pikepdf',
         'fitz',
