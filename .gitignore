@@ -8,3 +8,6 @@ build/
 dist/
 scratch_*.png
 .DS_Store
+.env
+*.pem
+*.key
