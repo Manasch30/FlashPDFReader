@@ -29,15 +29,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt pyinstaller
 
-      - name: Build Standalone Executable (Windows)
-        if: matrix.os == 'windows-latest'
+      - name: Build Standalone Executable
         run: |
-          pyinstaller --noconfirm --paths=src flashpdf.spec
-
-      - name: Build Standalone Executable (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          pyinstaller --noconfirm --paths=src run_app.py
+          pyinstaller --noconfirm flashpdf.spec
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
