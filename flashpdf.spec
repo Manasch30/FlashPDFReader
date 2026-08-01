@@ -17,7 +17,7 @@ for pkg in ["PySide6", "pikepdf", "fitz", "numpy"]:
 hiddenimports.extend(collect_submodules("flashpdf"))
 
 a = Analysis(
-    ["src/flashpdf/app.py"],
+    ["run_app.py"],
     pathex=["src"],
     binaries=binaries,
     datas=datas,
