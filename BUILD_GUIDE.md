@@ -2,6 +2,9 @@
 
 This branch contains pre-configured build specifications for packaging **FlashPDF Reader** into a single standalone `.exe` (Windows), Linux binary, or macOS application bundle using **PyInstaller**.
 
+> [!NOTE]
+> Tested & Verified: PyInstaller packages all PySide6, PyMuPDF, pikepdf, and QtMultimedia libraries seamlessly into a single executable binary.
+
 ---
 
 ## Building on Windows
