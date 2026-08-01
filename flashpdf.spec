@@ -1,27 +1,27 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-from PyInstaller.utils.hooks import collect_data_files, collect_submodules
+from PyInstaller.utils.hooks import collect_all, collect_submodules
 
 block_cipher = None
 
-hidden_imports = [
-    "PySide6.QtCore",
-    "PySide6.QtGui",
-    "PySide6.QtWidgets",
-    "PySide6.QtMultimedia",
-    "pikepdf",
-    "fitz",
-    "numpy",
-] + collect_submodules("flashpdf")
-
 datas = []
+binaries = []
+hiddenimports = ["PySide6.QtMultimedia"]
+
+for pkg in ["PySide6", "pikepdf", "fitz", "numpy"]:
+    d, b, h = collect_all(pkg)
+    datas.extend(d)
+    binaries.extend(b)
+    hiddenimports.extend(h)
+
+hiddenimports.extend(collect_submodules("flashpdf"))
 
 a = Analysis(
     ["src/flashpdf/app.py"],
     pathex=["src"],
-    binaries=[],
+    binaries=binaries,
     datas=datas,
-    hiddenimports=hidden_imports,
+    hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -34,7 +34,6 @@ a = Analysis(
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
-# Single standalone portable executable
 exe = EXE(
     pyz,
     a.scripts,
@@ -42,7 +41,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name="flashpdf",
+    name="FlashPDF_Windows",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
