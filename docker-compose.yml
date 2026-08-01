@@ -1,9 +1,0 @@
-services:
-  flashpdf:
-    build: .
-    container_name: flashpdf-reader
-    ports:
-      - "8000:8000"
-    volumes:
-      - .:/app/pdfs
-    restart: unless-stopped
