@@ -1,22 +1,21 @@
-"""Entry point for FlashPDF Reader application."""
+"""Application entry point."""
+
+from __future__ import annotations
 
 import sys
 from pathlib import Path
 
 from PySide6.QtWidgets import QApplication
 
-from flashpdf.main_window import MainWindow
+from .main_window import MainWindow
 
 
 def main() -> None:
     app = QApplication(sys.argv)
     window = MainWindow()
-
-    if len(sys.argv) > 1:
-        pdf_path = Path(sys.argv[1])
-        if pdf_path.exists() and pdf_path.suffix.lower() == ".pdf":
-            window.open_pdf(pdf_path)
-
+    default_pdf = Path.cwd() / "Lesson 1-3.pdf"
+    if default_pdf.is_file():
+        window.open_pdf(default_pdf)
     window.show()
     sys.exit(app.exec())
 

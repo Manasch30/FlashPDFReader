@@ -1,31 +1,56 @@
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+
+# C extensions
 *.so
+
+# Distribution / packaging
 .Python
-env/
-venv/
-ENV/
-.venv
-
-# PyInstaller / Build outputs
 build/
+develop-eggs/
 dist/
-*.manifest
-*.spec.log
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.spec
 
-# FlashPDF Audio Cache & Scratch
+# PyInstaller
+*.manifest
+
+# Unit test & Coverage / Lint caches
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+
+# Application Caches & Temporary Artifacts
 cache/
+flashpdf_uploads/
+scratch_*.png
 scratch/
 *.png
-*.mp3
 
-# IDE / Editor configs
-.vscode/
-.idea/
-*.swp
-*.swo
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
 
-# Antigravity brain / metadata (if any local)
-.gemini/
+# OS Junk
+.DS_Store
+Thumbs.db

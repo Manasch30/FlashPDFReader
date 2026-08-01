@@ -108,14 +108,13 @@ class PageViewWidget(QWidget):
             self._selection_start = None
 
             if rect.width() > 6 and rect.height() > 6:
-                _, page_height = self._renderer.page_size(self._page_number)
                 pdf_left = rect.left() / self._zoom
+                pdf_top = rect.top() / self._zoom
                 pdf_right = rect.right() / self._zoom
-                pdf_top = page_height - (rect.top() / self._zoom)
-                pdf_bottom = page_height - (rect.bottom() / self._zoom)
+                pdf_bottom = rect.bottom() / self._zoom
 
                 extracted_text = self._renderer.extract_text_in_rect(
-                    self._page_number, (pdf_left, pdf_bottom, pdf_right, pdf_top)
+                    self._page_number, (pdf_left, pdf_top, pdf_right, pdf_bottom)
                 )
 
                 if extracted_text:
@@ -123,11 +122,14 @@ class PageViewWidget(QWidget):
                     if clipboard:
                         clipboard.setText(extracted_text)
                     preview = extracted_text.replace("\n", " ")
-                    if len(preview) > 50:
-                        preview = preview[:47] + "..."
+                    if len(preview) > 60:
+                        preview = preview[:57] + "..."
                     msg = f"Copied to clipboard: \"{preview}\""
                     if self._status_callback:
                         self._status_callback(msg)
+                else:
+                    if self._status_callback:
+                        self._status_callback("No text found in selection.")
 
         super().mouseReleaseEvent(event)
 

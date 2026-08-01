@@ -48,13 +48,13 @@ class PdfRenderer:
     def extract_text_in_rect(
         self, page_number: int, rect: tuple[float, float, float, float]
     ) -> str:
-        """Extract plain text within a bounding rectangle on a zero-indexed page."""
+        """Extract plain text within a top-left origin bounding rectangle (x1, y1, x2, y2)."""
         if self._doc is None or not (0 <= page_number < self._page_count):
             return ""
         page = self._doc[page_number]
-        left, bottom, right, top = rect
+        x1, y1, x2, y2 = rect
         fitz_rect = fitz.Rect(
-            min(left, right), min(bottom, top), max(left, right), max(bottom, top)
+            min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2)
         )
         return page.get_text("text", clip=fitz_rect).strip()
 
