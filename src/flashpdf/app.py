@@ -7,7 +7,7 @@ from pathlib import Path
 
 from PySide6.QtWidgets import QApplication
 
-from .main_window import MainWindow
+from flashpdf.main_window import MainWindow
 
 
 def main() -> None:
