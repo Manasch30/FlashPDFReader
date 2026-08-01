@@ -32,6 +32,25 @@ To run the Linux portable binary:
 ./dist/flashpdf
 ```
 
+## 🐳 Running with Docker
+
+You can also run FlashPDF Reader inside a Docker container with GUI display and audio passthrough:
+
+```bash
+# Build and start container using Docker Compose
+docker-compose up --build
+```
+
+Or using Docker directly on Linux:
+```bash
+docker build -t flashpdf .
+docker run -it --rm \
+  -e DISPLAY=$DISPLAY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
+  -v /run/user/1000/pulse/native:/run/user/1000/pulse/native:ro \
+  flashpdf
+```
+
 ---
 
 ## 🛠️ How to Compile / Build from Source

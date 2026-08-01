@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  flashpdf:
+    build: .
+    container_name: flashpdf-reader
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
+      - /run/user/1000/pulse/native:/run/user/1000/pulse/native:ro
+      - ~/.config/pulse/cookie:/root/.config/pulse/cookie:ro
+      - .:/app
+    network_mode: host
