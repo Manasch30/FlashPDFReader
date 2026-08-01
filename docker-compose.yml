@@ -1,8 +1,11 @@
 version: '3.8'
 
 services:
+  # Native Desktop X11 GUI Mode (Linux Desktop)
   flashpdf:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: flashpdf-reader
     environment:
       - DISPLAY=${DISPLAY:-:0}
@@ -12,3 +15,14 @@ services:
       - ~/.config/pulse/cookie:/root/.config/pulse/cookie:ro
       - .:/app
     network_mode: host
+
+  # Universal Web-Browser GUI Mode (Windows / macOS / Remote Server)
+  flashpdf-web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: flashpdf-web
+    ports:
+      - "6080:6080"
+    volumes:
+      - .:/app

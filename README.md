@@ -34,21 +34,21 @@ To run the Linux portable binary:
 
 ## 🐳 Running with Docker
 
-You can also run FlashPDF Reader inside a Docker container with GUI display and audio passthrough:
+FlashPDF Reader supports two Docker modes:
+
+### 1. Universal Web Browser Mode (Windows / macOS / Linux)
+Runs FlashPDF Reader inside a container with **noVNC web-GUI**. You can access it from any web browser at `http://localhost:6080` with **zero X11/display setup required**:
 
 ```bash
-# Build and start container using Docker Compose
-docker-compose up --build
+docker-compose up --build flashpdf-web
 ```
+> Open your browser to **`http://localhost:6080`**!
 
-Or using Docker directly on Linux:
+### 2. Native Desktop X11 GUI Mode (Linux Desktop)
+Renders directly on your desktop display with native hardware acceleration and PulseAudio:
+
 ```bash
-docker build -t flashpdf .
-docker run -it --rm \
-  -e DISPLAY=$DISPLAY \
-  -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
-  -v /run/user/1000/pulse/native:/run/user/1000/pulse/native:ro \
-  flashpdf
+docker-compose up --build flashpdf
 ```
 
 ---
