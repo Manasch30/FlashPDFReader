@@ -1,5 +1,11 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import os
+import sys
+
+# Ensure src/ is in python path during PyInstaller spec analysis
+sys.path.insert(0, os.path.abspath("src"))
+
 from PyInstaller.utils.hooks import collect_all, collect_submodules
 
 block_cipher = None
@@ -18,7 +24,7 @@ hiddenimports.extend(collect_submodules("flashpdf"))
 
 a = Analysis(
     ["run_app.py"],
-    pathex=["src"],
+    pathex=[os.path.abspath("src"), os.path.abspath(".")],
     binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports,
