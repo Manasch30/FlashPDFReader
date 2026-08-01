@@ -1,16 +1,27 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-from PyInstaller.utils.hooks import collect_submodules
+import os
+from PyInstaller.utils.hooks import collect_all, collect_submodules
+
+numpy_datas, numpy_binaries, numpy_hiddenimports = collect_all('numpy')
+
+flex_binaries = []
+flex_dir = '/usr/lib64/flexiblas'
+if os.path.exists(flex_dir):
+    for f in os.listdir(flex_dir):
+        fp = os.path.join(flex_dir, f)
+        if os.path.isfile(fp):
+            flex_binaries.append((fp, 'flexiblas'))
 
 block_cipher = None
 
 a = Analysis(
     ['src/flashpdf/app.py'],
     pathex=['src'],
-    binaries=[],
+    binaries=numpy_binaries + flex_binaries,
     datas=[
         ('src/flashpdf/static', 'flashpdf/static'),
-    ],
+    ] + numpy_datas,
     hiddenimports=[
         'pikepdf',
         'fitz',
@@ -20,7 +31,7 @@ a = Analysis(
         'PySide6.QtGui',
         'PySide6.QtWidgets',
         'PySide6.QtMultimedia',
-    ] + collect_submodules('pikepdf') + collect_submodules('fitz'),
+    ] + numpy_hiddenimports + collect_submodules('pikepdf') + collect_submodules('fitz'),
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
