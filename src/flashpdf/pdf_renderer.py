@@ -1,4 +1,4 @@
-"""Render PDF pages using pikepdf, PyMuPDF (fitz), and Pillow (PIL)."""
+"""Render PDF pages using pikepdf and PyMuPDF (fitz)."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from pathlib import Path
 import fitz  # type: ignore[import-untyped]
 import numpy as np
 import pikepdf
-from PIL import Image
+from PySide6.QtGui import QImage
 
 
 class PdfRenderer:
@@ -64,15 +64,15 @@ class PdfRenderer:
         scale: float = 1.0,
         visible_answers: set[str] | None = None,
         dark_mode: bool = False,
-    ) -> Image.Image:
-        """Render a zero-indexed page to a PIL Image at the specified zoom scale.
+    ) -> QImage:
+        """Render a zero-indexed page to a QImage at the specified zoom scale.
 
         If ``visible_answers`` contains answer field names, their annotation hidden flags (/F)
         are updated in-memory via pikepdf so their native appearance stream renders directly on the page.
         If ``dark_mode`` is True, applies smart color transformation with smooth anti-aliased red text blending.
         """
         if self._path is None or not (0 <= page_number < self._page_count):
-            return Image.new("RGB", (1, 1), (255, 255, 255))
+            return QImage()
 
         visible = visible_answers or set()
 
@@ -165,17 +165,39 @@ class PdfRenderer:
                 output[:, :, c] = (1.0 - r_weight) * output[:, :, c] + r_weight * coral_red[c]
 
             out_bytes = np.clip(output, 0, 255).astype(np.uint8)
-            return Image.fromarray(out_bytes)
 
-        return Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
+            image = QImage(
+                out_bytes.data,
+                pix.width,
+                pix.height,
+                pix.stride,
+                QImage.Format.Format_RGB888,
+            )
+            return image.copy()
 
-    def render_thumbnail(self, page_number: int, max_height: int = 150) -> Image.Image:
-        """Render a small thumbnail PIL Image of a page for sidebar navigation."""
+        image = QImage(
+            pix.samples,
+            pix.width,
+            pix.height,
+            pix.stride,
+            QImage.Format.Format_RGB888,
+        )
+        return image.copy()
+
+    def render_thumbnail(self, page_number: int, max_height: int = 150) -> QImage:
+        """Render a small thumbnail QImage of a page for sidebar navigation."""
         if self._doc is None or not (0 <= page_number < self._page_count):
-            return Image.new("RGB", (1, 1), (255, 255, 255))
+            return QImage()
         page = self._doc[page_number]
         rect = page.rect
         scale = max_height / rect.height if rect.height > 0 else 0.2
         matrix = fitz.Matrix(scale, scale)
         pix = page.get_pixmap(matrix=matrix, alpha=False)
-        return Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
+        image = QImage(
+            pix.samples,
+            pix.width,
+            pix.height,
+            pix.stride,
+            QImage.Format.Format_RGB888,
+        )
+        return image.copy()

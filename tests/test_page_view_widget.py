@@ -81,9 +81,9 @@ def test_page_view_widget_dark_mode() -> None:
     assert widget.page_number == 0
     img_light = renderer.render_page(0, scale=1.0, dark_mode=False)
     img_dark = renderer.render_page(0, scale=1.0, dark_mode=True)
-    assert img_light.width > 0
-    assert img_dark.width > 0
-    assert img_light.tobytes() != img_dark.tobytes()
+    assert not img_light.isNull()
+    assert not img_dark.isNull()
+    assert img_light.bits() != img_dark.bits()
 
     renderer.close()
 
