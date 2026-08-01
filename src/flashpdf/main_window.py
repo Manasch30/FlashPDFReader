@@ -8,7 +8,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from PySide6.QtCore import QSize, Qt
-from PySide6.QtGui import QAction, QIcon, QKeyEvent, QKeySequence, QPixmap, QWheelEvent
+from PySide6.QtGui import QAction, QIcon, QImage, QKeyEvent, QKeySequence, QPixmap, QWheelEvent
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -361,8 +361,15 @@ class MainWindow(QMainWindow):
         self._thumbnail_list.blockSignals(True)
         self._thumbnail_list.clear()
         for i in range(self._renderer.page_count):
-            thumb_img = self._renderer.render_thumbnail(i, max_height=140)
-            pix = QPixmap.fromImage(thumb_img)
+            pil_thumb = self._renderer.render_thumbnail(i, max_height=140)
+            qimg = QImage(
+                pil_thumb.tobytes(),
+                pil_thumb.width,
+                pil_thumb.height,
+                pil_thumb.width * 3,
+                QImage.Format.Format_RGB888,
+            )
+            pix = QPixmap.fromImage(qimg)
             icon = QIcon(pix)
             item = QListWidgetItem(icon, f"Page {i + 1}")
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)

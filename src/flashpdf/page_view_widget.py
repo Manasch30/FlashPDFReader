@@ -6,7 +6,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from PySide6.QtCore import QPoint, QRect, Qt
-from PySide6.QtGui import QMouseEvent, QPixmap
+from PySide6.QtGui import QImage, QMouseEvent, QPixmap
 from PySide6.QtWidgets import QApplication, QLabel, QPushButton, QWidget
 
 from .audio_player import AudioPlayer
@@ -67,15 +67,22 @@ class PageViewWidget(QWidget):
         self._dark_mode = dark_mode
 
         self._clear_selection()
-        image = self._renderer.render_page(
+        pil_img = self._renderer.render_page(
             self._page_number,
             self._zoom,
             visible_answers=self._visible_answers,
             dark_mode=self._dark_mode,
         )
-        self._page_label.setPixmap(QPixmap.fromImage(image))
-        self._page_label.setFixedSize(image.size())
-        self.setFixedSize(image.size())
+        qimg = QImage(
+            pil_img.tobytes(),
+            pil_img.width,
+            pil_img.height,
+            pil_img.width * 3,
+            QImage.Format.Format_RGB888,
+        )
+        self._page_label.setPixmap(QPixmap.fromImage(qimg))
+        self._page_label.setFixedSize(qimg.size())
+        self.setFixedSize(qimg.size())
 
         self._clear_overlays()
         self._add_interactive_overlays()

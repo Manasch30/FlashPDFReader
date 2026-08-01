@@ -74,11 +74,11 @@ def test_pdf_renderer_unhides_answer_layer_pixmap() -> None:
     img_visible = renderer.render_page(2, scale=1.0, visible_answers={"answer01"})
     thumb = renderer.render_thumbnail(2, max_height=140)
 
-    assert not img_hidden.isNull()
-    assert not img_visible.isNull()
-    assert not thumb.isNull()
-    assert thumb.height() <= 150
-    assert img_hidden.bits() != img_visible.bits()
+    assert img_hidden.width > 0
+    assert img_visible.width > 0
+    assert thumb.width > 0
+    assert thumb.height <= 150
+    assert img_hidden.tobytes() != img_visible.tobytes()
 
     renderer.close()
 
@@ -91,8 +91,8 @@ def test_pdf_renderer_unhides_table_answer_layers_lesson_7_9() -> None:
     img_hidden = renderer.render_page(6, scale=1.0, visible_answers=set())
     img_table_visible = renderer.render_page(6, scale=1.0, visible_answers={"ボタン288"})
 
-    assert not img_hidden.isNull()
-    assert not img_table_visible.isNull()
-    assert img_hidden.bits() != img_table_visible.bits()
+    assert img_hidden.width > 0
+    assert img_table_visible.width > 0
+    assert img_hidden.tobytes() != img_table_visible.tobytes()
 
     renderer.close()

@@ -8,7 +8,6 @@ from collections import defaultdict
 from pathlib import Path
 
 import streamlit as st
-from PIL import Image
 
 # Ensure src/ is in Python path for Streamlit Cloud
 sys.path.insert(0, str(Path(__file__).parent / "src"))
@@ -28,15 +27,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
-
-def qimage_to_pil(qimg) -> Image.Image:
-    """Convert PySide6 QImage to PIL Image for Streamlit display."""
-    qimg_rgb = qimg.convertToFormat(qimg.Format.Format_RGB888)
-    width = qimg_rgb.width()
-    height = qimg_rgb.height()
-    ptr = qimg_rgb.bits()
-    return Image.frombytes("RGB", (width, height), ptr.tobytes())
 
 
 @st.cache_resource
@@ -141,13 +131,12 @@ def main() -> None:
             if view_mode == "Continuous Scroll":
                 st.markdown(f"#### Page {p_idx + 1} of {total_pages}")
 
-            qimg = renderer.render_page(
+            pil_img = renderer.render_page(
                 p_idx,
                 scale=scale,
                 visible_answers=st.session_state.visible_answers,
                 dark_mode=dark_mode,
             )
-            pil_img = qimage_to_pil(qimg)
             st.image(pil_img, use_container_width=True)
             st.divider()
 
