@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# PyInstaller / Build outputs
+build/
+dist/
+*.manifest
+*.spec.log
+
+# FlashPDF Audio Cache & Scratch
+cache/
+scratch/
+*.png
+*.mp3
+
+# IDE / Editor configs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Antigravity brain / metadata (if any local)
+.gemini/

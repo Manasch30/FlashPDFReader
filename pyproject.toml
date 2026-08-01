@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flashpdf-reader"
+version = "0.1.0"
+description = "A native reader for Flash-based interactive educational PDFs."
+requires-python = ">=3.12"
+dependencies = [
+    "pikepdf>=9.0",
+    "PyMuPDF>=1.24",
+    "PySide6>=6.7",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.6", "black>=24.0"]
+
+[project.scripts]
+flashpdf = "flashpdf.app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]

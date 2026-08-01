@@ -1,0 +1,2 @@
+[console_scripts]
+flashpdf = flashpdf.app:main

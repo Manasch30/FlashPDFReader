@@ -1,0 +1,13 @@
+README.md
+pyproject.toml
+src/flashpdf/__init__.py
+src/flashpdf/app.py
+src/flashpdf/asset_extractor.py
+src/flashpdf/models.py
+src/flashpdf_reader.egg-info/PKG-INFO
+src/flashpdf_reader.egg-info/SOURCES.txt
+src/flashpdf_reader.egg-info/dependency_links.txt
+src/flashpdf_reader.egg-info/entry_points.txt
+src/flashpdf_reader.egg-info/requires.txt
+src/flashpdf_reader.egg-info/top_level.txt
+tests/test_asset_extractor.py
