@@ -94,4 +94,4 @@ ruff check .
 
 ## 📜 License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the G.P.L License. See `LICENSE` for more information.
