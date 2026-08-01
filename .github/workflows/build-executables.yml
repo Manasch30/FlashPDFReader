@@ -1,0 +1,115 @@
+name: Build Standalone Executables
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    name: Build Windows Executable (.exe)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Project & Dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install -e .
+          python -m pip install pyinstaller
+
+      - name: Build Executable via PyInstaller
+        run: |
+          python build_exe.py
+
+      - name: Rename Executable
+        run: |
+          if (Test-Path "dist\FlashPDFReader.exe") {
+            Move-Item -Path "dist\FlashPDFReader.exe" -Destination "dist\FlashPDFReader-Windows.exe"
+          }
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FlashPDFReader-Windows-x64
+          path: dist/FlashPDFReader-Windows.exe
+          retention-days: 14
+
+  build-linux:
+    name: Build Linux Executable
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up System Libraries for PySide6
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libegl1-mesa libgl1-mesa-glx libxcb-cursor0 libx11-xcb1 libxrender1 libdbus-1-3 libxkbcommon-x11-0 libfontconfig1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Project & Dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install -e .
+          python -m pip install pyinstaller
+
+      - name: Build Executable via PyInstaller
+        run: |
+          python build_exe.py
+
+      - name: Rename Executable
+        run: |
+          mv dist/FlashPDFReader dist/FlashPDFReader-Linux
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FlashPDFReader-Linux-x64
+          path: dist/FlashPDFReader-Linux
+          retention-days: 14
+
+  create-release:
+    name: Publish GitHub Release (on tag)
+    needs: [build-windows, build-linux]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: FlashPDFReader-Windows-x64
+          path: release-assets/
+
+      - name: Download Linux Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: FlashPDFReader-Linux-x64
+          path: release-assets/
+
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-assets/FlashPDFReader-Windows.exe
+            release-assets/FlashPDFReader-Linux
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
