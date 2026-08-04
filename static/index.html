@@ -467,10 +467,12 @@
         imgUrl += `&visible=${encodeURIComponent(ans)}`;
       });
 
+      const res = await fetch(`/api/interactivity?pdf=${encodeURIComponent(currentPdf)}&page=${pageIdx}`);
+      const inter = await res.json();
+
       const img = document.createElement("img");
       img.className = "page-img";
       img.alt = `Page ${pageIdx + 1}`;
-      img.src = imgUrl;
 
       const overlayLayer = document.createElement("div");
       overlayLayer.className = "overlay-layer";
@@ -478,12 +480,16 @@
       container.appendChild(img);
       container.appendChild(overlayLayer);
 
-      const res = await fetch(`/api/interactivity?pdf=${encodeURIComponent(currentPdf)}&page=${pageIdx}`);
-      const inter = await res.json();
-
-      img.onload = () => {
+      const renderOverlays = () => {
         populateOverlays(overlayLayer, img, inter);
       };
+
+      img.onload = renderOverlays;
+      img.src = imgUrl;
+
+      if (img.complete) {
+        renderOverlays();
+      }
 
       return container;
     }

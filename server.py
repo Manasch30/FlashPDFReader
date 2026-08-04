@@ -1,9 +1,15 @@
 """Headless FastAPI Server for FlashPDF Reader (Cloud & Web Deployment)."""
 
 import io
+import sys
 from pathlib import Path
 from tempfile import gettempdir
 from typing import Annotated
+
+# Ensure workspace root is in sys.path for robust imports
+WORKSPACE_DIR = Path(__file__).parent.resolve()
+if str(WORKSPACE_DIR) not in sys.path:
+    sys.path.insert(0, str(WORKSPACE_DIR))
 
 import fitz  # PyMuPDF
 import numpy as np
