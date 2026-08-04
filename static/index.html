@@ -157,7 +157,8 @@
       box-shadow: var(--shadow);
       display: inline-block;
       max-width: 100%;
-      transition: filter 0.3s ease;
+      transition: filter 0.3s ease, transform 0.15s cubic-bezier(0.2, 0, 0, 1);
+      transform-origin: top center;
     }
 
     .viewer-container.dark-mode {
@@ -461,6 +462,7 @@
       const container = document.createElement("div");
       container.className = `viewer-container ${isDarkMode ? "dark-mode" : ""}`;
       container.dataset.page = pageIdx;
+      container.style.transform = `scale(${cssScale})`;
 
       let imgUrl = `/api/page?pdf=${encodeURIComponent(currentPdf)}&page=${pageIdx}&scale=${currentScale}&dark=${isDarkMode}`;
       visibleAnswers.forEach(ans => {
@@ -589,9 +591,14 @@
       }
     }
 
+    let cssScale = 1.0;
+
     function zoom(delta) {
-      currentScale = Math.min(Math.max(currentScale + delta, 0.8), 3.0);
-      renderView();
+      cssScale = Math.min(Math.max(cssScale + delta, 0.6), 4.0);
+      const container = document.querySelector(".viewer-container");
+      if (container) {
+        container.style.transform = `scale(${cssScale})`;
+      }
     }
 
     function toggleDarkMode() {
