@@ -10,6 +10,7 @@ import numpy as np
 import pikepdf
 from fastapi import FastAPI, File, HTTPException, Query, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from src.flashpdf.annotation_parser import (
@@ -257,16 +258,35 @@ def get_interactivity(pdf: str, page: int = 0) -> dict:
 
 
 @app.get("/api/audio/{filename}")
-def get_audio(filename: str) -> Response:
-    """Stream extracted MP3 audio file."""
-    audio_path = AUDIO_CACHE_DIR / filename
-    if not audio_path.exists():
-        raise HTTPException(status_code=404, detail="Audio file not found")
-    
-    with open(audio_path, "rb") as f:
-        audio_bytes = f.read()
+def get_audio(filename: str) -> FileResponse:
+    """Stream extracted MP3 audio file with range header support."""
+    basename = Path(filename).name
+    audio_path = AUDIO_CACHE_DIR / basename
 
-    return Response(content=audio_bytes, media_type="audio/mpeg")
+    if not audio_path.exists():
+        # Case-insensitive lookup
+        target_stem = Path(basename).stem.casefold()
+        matches = [
+            p for p in AUDIO_CACHE_DIR.glob("*")
+            if p.stem.casefold() == target_stem
+        ]
+        if matches:
+            audio_path = matches[0]
+        else:
+            # Populate cache from workspace PDFs if empty
+            for pdf_file in WORKSPACE_DIR.glob("*.pdf"):
+                extract_embedded_assets(pdf_file, cache_dir=AUDIO_CACHE_DIR)
+            
+            matches = [
+                p for p in AUDIO_CACHE_DIR.glob("*")
+                if p.stem.casefold() == target_stem or p.name.casefold() == basename.casefold()
+            ]
+            if matches:
+                audio_path = matches[0]
+            else:
+                raise HTTPException(status_code=404, detail=f"Audio file '{filename}' not found.")
+
+    return FileResponse(audio_path, media_type="audio/mpeg")
 
 
 # Serve static web frontend

@@ -325,7 +325,6 @@
         <input type="file" id="file-input" accept=".pdf" onchange="uploadCustomPdf(this)">
       </label>
 
-      <button id="scroll-toggle" onclick="toggleScrollMode()" title="Toggle Continuous Scroll / Single Page View">📜 Scroll</button>
       <button id="dark-toggle" onclick="toggleDarkMode()" title="Toggle Smart Dark Mode">🌙</button>
       <button id="zoom-in" onclick="zoom(0.2)">+</button>
       <button id="zoom-out" onclick="zoom(-0.2)">-</button>
@@ -362,7 +361,6 @@
     let totalPages = 1;
     let currentScale = 1.5;
     let isDarkMode = false;
-    let isContinuousScroll = false;
     let visibleAnswers = new Set();
 
     // Mouse Drag Panning State
@@ -444,13 +442,7 @@
     }
 
     function renderView() {
-      if (isContinuousScroll) {
-        document.getElementById("header-nav").style.display = "none";
-        renderAllPagesContinuous();
-      } else {
-        document.getElementById("header-nav").style.display = "flex";
-        renderSinglePage(currentPage);
-      }
+      renderSinglePage(currentPage);
     }
 
     async function renderSinglePage(pageIdx) {
@@ -462,18 +454,6 @@
 
       const container = await createPageElement(pageIdx);
       wrapper.appendChild(container);
-      showSpinner(false);
-    }
-
-    async function renderAllPagesContinuous() {
-      showSpinner(true);
-      const wrapper = document.getElementById("pages-wrapper");
-      wrapper.innerHTML = "";
-
-      for (let i = 0; i < totalPages; i++) {
-        const container = await createPageElement(i);
-        wrapper.appendChild(container);
-      }
       showSpinner(false);
     }
 
@@ -577,9 +557,18 @@
       const audioPlayer = document.getElementById("audio-player");
       const audioLabel = document.getElementById("audio-label");
 
+      if (!filename) return;
+
       audioLabel.textContent = `▶ Playing: ${filename}`;
-      audioPlayer.src = `/api/audio/${encodeURIComponent(filename)}`;
-      audioPlayer.play();
+      const srcUrl = `/api/audio/${encodeURIComponent(filename)}`;
+      audioPlayer.src = srcUrl;
+      audioPlayer.load();
+      const playPromise = audioPlayer.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(err => {
+          console.warn("Playback prevented or failed:", err);
+        });
+      }
     }
 
     function setPlaybackSpeed(speed) {
@@ -602,12 +591,6 @@
     function toggleDarkMode() {
       isDarkMode = !isDarkMode;
       document.getElementById("dark-toggle").textContent = isDarkMode ? "☀️" : "🌙";
-      renderView();
-    }
-
-    function toggleScrollMode() {
-      isContinuousScroll = !isContinuousScroll;
-      document.getElementById("scroll-toggle").textContent = isContinuousScroll ? "📄 Page" : "📜 Scroll";
       renderView();
     }
 
