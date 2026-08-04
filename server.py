@@ -8,7 +8,7 @@ from typing import Annotated
 import fitz  # PyMuPDF
 import numpy as np
 import pikepdf
-from fastapi import FastAPI, HTTPException, Query, Response
+from fastapi import FastAPI, File, HTTPException, Query, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -74,6 +74,28 @@ def open_pdf(pdf: str) -> dict:
     return {
         "pdf": pdf_path.name,
         "total_pages": len(doc),
+        "extracted_audio": extracted_audio,
+    }
+
+
+@app.post("/api/upload")
+def upload_pdf(file: UploadFile = File(...)) -> dict:
+    """Upload a custom PDF file, save it to the server, and extract interactive assets."""
+    if not file.filename or not file.filename.casefold().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+
+    save_path = WORKSPACE_DIR / file.filename
+    with open(save_path, "wb") as f:
+        f.write(file.file.read())
+
+    # Open document and extract assets
+    DOC_CACHE[file.filename] = fitz.open(save_path)
+    extracted = extract_embedded_assets(save_path, cache_dir=AUDIO_CACHE_DIR)
+    extracted_audio = [asset.name for asset in extracted]
+
+    return {
+        "pdf": file.filename,
+        "total_pages": len(DOC_CACHE[file.filename]),
         "extracted_audio": extracted_audio,
     }
 

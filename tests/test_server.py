@@ -49,3 +49,20 @@ def test_render_page_and_interactivity():
     assert "speakers" in data
     assert "answers" in data
     assert "page_size" in data
+
+
+def test_upload_pdf(tmp_path):
+    # Copy an existing pdf as upload test
+    pdf_path = Path(__file__).parent.parent / "Lesson 1-3.pdf"
+    if pdf_path.exists():
+        with open(pdf_path, "rb") as f:
+            pdf_bytes = f.read()
+
+        response = client.post(
+            "/api/upload",
+            files={"file": ("test_upload.pdf", pdf_bytes, "application/pdf")},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["pdf"] == "test_upload.pdf"
+        assert data["total_pages"] > 0

@@ -37,6 +37,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      user-select: none;
     }
 
     /* Top Bar Header */
@@ -45,13 +46,14 @@
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border-color);
-      padding: 0.75rem 1rem;
+      padding: 0.6rem 1rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.75rem;
+      gap: 0.5rem;
       z-index: 100;
       box-shadow: var(--shadow);
+      flex-wrap: wrap;
     }
 
     .brand {
@@ -70,40 +72,64 @@
     .controls {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.4rem;
+      flex-wrap: wrap;
     }
 
-    select, button {
+    select, button, label.file-upload-btn {
       background: var(--bg-surface);
       color: var(--text-main);
       border: 1px solid var(--border-color);
-      padding: 0.45rem 0.75rem;
+      padding: 0.4rem 0.65rem;
       border-radius: 8px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s ease;
       outline: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
     }
 
     select {
-      max-width: 150px;
+      max-width: 140px;
     }
 
-    button:hover, button:active {
+    button:hover, button:active, label.file-upload-btn:hover {
       background: var(--accent);
       border-color: var(--accent);
     }
 
-    /* Main Content Area */
+    input[type="file"] {
+      display: none;
+    }
+
+    /* Main Scrollable Viewport */
     main {
       flex: 1;
       overflow: auto;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 1rem;
+      padding: 1.5rem 1rem;
       position: relative;
+      cursor: grab;
+    }
+
+    main:active {
+      cursor: grabbing;
+    }
+
+    /* Continuous Scroll Container & Single View */
+    .pages-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      max-width: 100%;
+      transform-origin: top center;
+      transition: transform 0.1s ease-out;
     }
 
     .viewer-container {
@@ -120,7 +146,7 @@
       background: #1e2026;
     }
 
-    #page-img {
+    .page-img {
       display: block;
       max-width: 100%;
       height: auto;
@@ -128,7 +154,7 @@
     }
 
     /* Interactive Overlay Layer */
-    #overlay-layer {
+    .overlay-layer {
       position: absolute;
       top: 0;
       left: 0;
@@ -154,12 +180,16 @@
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
       animation: pulse 2s infinite;
-      transition: transform 0.15s ease;
+      transition: transform 0.15s ease, background 0.2s ease;
+    }
+
+    .speaker-btn:hover {
+      transform: scale(1.15);
+      background: var(--accent-light);
     }
 
     .speaker-btn:active {
       transform: scale(0.9);
-      background: var(--accent-light);
     }
 
     @keyframes pulse {
@@ -178,9 +208,15 @@
       border-radius: 6px;
       font-size: 0.75rem;
       font-weight: 700;
-      padding: 2px 6px;
+      padding: 3px 8px;
       cursor: pointer;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      transition: transform 0.15s ease, background 0.2s ease;
+    }
+
+    .answer-btn:hover {
+      transform: scale(1.08);
+      background: #fde047;
     }
 
     /* Audio Player Sticky Bottom Bar */
@@ -189,7 +225,7 @@
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border-top: 1px solid var(--border-color);
-      padding: 0.75rem 1rem;
+      padding: 0.6rem 1rem;
       display: flex;
       align-items: center;
       gap: 0.75rem;
@@ -223,13 +259,13 @@
       align-items: center;
       justify-content: center;
       gap: 1rem;
-      padding: 0.5rem;
+      padding: 0.4rem;
       background: var(--bg-surface);
       border-top: 1px solid var(--border-color);
     }
 
     .page-info {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 600;
     }
 
@@ -268,23 +304,28 @@
         <option value="">Loading PDFs...</option>
       </select>
 
+      <label class="file-upload-btn" title="Open custom PDF file">
+        📁 Open PDF
+        <input type="file" id="file-input" accept=".pdf" onchange="uploadCustomPdf(this)">
+      </label>
+
+      <button id="scroll-toggle" onclick="toggleScrollMode()" title="Toggle Continuous Scroll / Single Page View">📜 Scroll</button>
       <button id="dark-toggle" onclick="toggleDarkMode()" title="Toggle Smart Dark Mode">🌙</button>
       <button id="zoom-in" onclick="zoom(0.2)">+</button>
       <button id="zoom-out" onclick="zoom(-0.2)">-</button>
     </div>
   </header>
 
-  <!-- Page Viewer Area -->
+  <!-- Main Scrollable Viewport with Drag & Mouse Panning -->
   <main id="main-container">
-    <div class="viewer-container" id="viewer">
-      <img id="page-img" alt="PDF Page" src="" onload="onImageLoaded()">
-      <div id="overlay-layer"></div>
-      <div class="spinner" id="loading-spinner"></div>
+    <div class="pages-wrapper" id="pages-wrapper">
+      <!-- Pages rendered dynamically here -->
     </div>
+    <div class="spinner" id="loading-spinner"></div>
   </main>
 
-  <!-- Navigation Bar -->
-  <div class="nav-bar">
+  <!-- Single Page Navigation Bar -->
+  <div class="nav-bar" id="nav-bar">
     <button onclick="changePage(-1)">◀ Prev</button>
     <span class="page-info" id="page-display">Page 1 / 1</span>
     <button onclick="changePage(1)">Next ▶</button>
@@ -312,10 +353,16 @@
     let totalPages = 1;
     let currentScale = 1.5;
     let isDarkMode = false;
+    let isContinuousScroll = false;
     let visibleAnswers = new Set();
-    let originalPageSize = [600, 800];
+
+    // Mouse Drag Panning State
+    let isMouseDown = false;
+    let startX = 0, startY = 0;
+    let scrollLeft = 0, scrollTop = 0;
 
     async function init() {
+      setupMousePanning();
       try {
         const res = await fetch("/api/pdfs");
         const pdfs = await res.json();
@@ -340,6 +387,40 @@
       }
     }
 
+    async function uploadCustomPdf(input) {
+      if (!input.files || input.files.length === 0) return;
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append("file", file);
+
+      showSpinner(true);
+      try {
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+
+        // Add to select dropdown
+        const select = document.getElementById("pdf-select");
+        let opt = Array.from(select.options).find(o => o.value === data.pdf);
+        if (!opt) {
+          opt = document.createElement("option");
+          opt.value = data.pdf;
+          opt.textContent = data.pdf;
+          select.appendChild(opt);
+        }
+        select.value = data.pdf;
+
+        loadPdf(data.pdf);
+      } catch (err) {
+        alert("Failed to upload PDF file.");
+        console.error(err);
+      } finally {
+        showSpinner(false);
+      }
+    }
+
     async function loadPdf(pdfName) {
       if (!pdfName) return;
       currentPdf = pdfName;
@@ -351,50 +432,93 @@
       const data = await res.json();
       totalPages = data.total_pages;
 
-      renderCurrentPage();
+      renderView();
     }
 
-    async function renderCurrentPage() {
-      showSpinner(true);
-      document.getElementById("page-display").textContent = `Page ${currentPage + 1} / ${totalPages}`;
+    function renderView() {
+      if (isContinuousScroll) {
+        document.getElementById("nav-bar").style.display = "none";
+        renderAllPagesContinuous();
+      } else {
+        document.getElementById("nav-bar").style.display = "flex";
+        renderSinglePage(currentPage);
+      }
+    }
 
-      // Build image URL
-      let imgUrl = `/api/page?pdf=${encodeURIComponent(currentPdf)}&page=${currentPage}&scale=${currentScale}&dark=${isDarkMode}`;
+    async function renderSinglePage(pageIdx) {
+      showSpinner(true);
+      document.getElementById("page-display").textContent = `Page ${pageIdx + 1} / ${totalPages}`;
+
+      const wrapper = document.getElementById("pages-wrapper");
+      wrapper.innerHTML = "";
+
+      const container = await createPageElement(pageIdx);
+      wrapper.appendChild(container);
+      showSpinner(false);
+    }
+
+    async function renderAllPagesContinuous() {
+      showSpinner(true);
+      const wrapper = document.getElementById("pages-wrapper");
+      wrapper.innerHTML = "";
+
+      for (let i = 0; i < totalPages; i++) {
+        const container = await createPageElement(i);
+        wrapper.appendChild(container);
+      }
+      showSpinner(false);
+    }
+
+    async function createPageElement(pageIdx) {
+      const container = document.createElement("div");
+      container.className = `viewer-container ${isDarkMode ? "dark-mode" : ""}`;
+      container.dataset.page = pageIdx;
+
+      let imgUrl = `/api/page?pdf=${encodeURIComponent(currentPdf)}&page=${pageIdx}&scale=${currentScale}&dark=${isDarkMode}`;
       visibleAnswers.forEach(ans => {
         imgUrl += `&visible=${encodeURIComponent(ans)}`;
       });
 
-      const img = document.getElementById("page-img");
+      const img = document.createElement("img");
+      img.className = "page-img";
+      img.alt = `Page ${pageIdx + 1}`;
       img.src = imgUrl;
 
-      // Fetch annotation coordinates
-      const res = await fetch(`/api/interactivity?pdf=${encodeURIComponent(currentPdf)}&page=${currentPage}`);
-      const inter = await res.json();
-      originalPageSize = inter.page_size;
+      const overlayLayer = document.createElement("div");
+      overlayLayer.className = "overlay-layer";
 
-      renderOverlays(inter);
+      container.appendChild(img);
+      container.appendChild(overlayLayer);
+
+      // Fetch interactivity coordinates
+      const res = await fetch(`/api/interactivity?pdf=${encodeURIComponent(currentPdf)}&page=${pageIdx}`);
+      const inter = await res.json();
+
+      img.onload = () => {
+        populateOverlays(overlayLayer, img, inter);
+      };
+
+      return container;
     }
 
-    function renderOverlays(interactivity) {
-      const overlayLayer = document.getElementById("overlay-layer");
+    function populateOverlays(overlayLayer, img, interactivity) {
       overlayLayer.innerHTML = "";
+      const originalPageSize = interactivity.page_size;
 
-      const img = document.getElementById("page-img");
       const imgWidth = img.clientWidth || (originalPageSize[0] * currentScale);
       const imgHeight = img.clientHeight || (originalPageSize[1] * currentScale);
 
       const scaleX = imgWidth / originalPageSize[0];
       const scaleY = imgHeight / originalPageSize[1];
 
-      // 1. Render Speaker Audio Buttons
+      // Render Speaker Buttons
       interactivity.speakers.forEach(s => {
         const btn = document.createElement("div");
         btn.className = "speaker-btn";
 
-        // Convert PDF coordinates (bottom-left origin) -> Screen coordinates (top-left origin)
         const [x1, y1, x2, y2] = s.rect;
-        const width = Math.max((x2 - x1) * scaleX, 32);
-        const height = Math.max((y2 - y1) * scaleY, 32);
+        const width = Math.max((x2 - x1) * scaleX, 30);
+        const height = Math.max((y2 - y1) * scaleY, 30);
         const left = x1 * scaleX;
         const top = (originalPageSize[1] - y2) * scaleY;
 
@@ -413,7 +537,7 @@
         overlayLayer.appendChild(btn);
       });
 
-      // 2. Render Answer Overlay Toggle Buttons
+      // Render Answer Layer Buttons
       interactivity.hide_actions.forEach(h => {
         const btn = document.createElement("button");
         btn.className = "answer-btn";
@@ -435,7 +559,7 @@
           } else {
             visibleAnswers.add(h.target_field);
           }
-          renderCurrentPage();
+          renderView();
         };
 
         overlayLayer.appendChild(btn);
@@ -452,40 +576,74 @@
     }
 
     function setPlaybackSpeed(speed) {
-      const audioPlayer = document.getElementById("audio-player");
-      audioPlayer.playbackRate = parseFloat(speed);
+      document.getElementById("audio-player").playbackRate = parseFloat(speed);
     }
 
     function changePage(delta) {
       const newPage = currentPage + delta;
       if (newPage >= 0 && newPage < totalPages) {
         currentPage = newPage;
-        renderCurrentPage();
+        renderView();
       }
     }
 
     function zoom(delta) {
       currentScale = Math.min(Math.max(currentScale + delta, 0.8), 3.0);
-      renderCurrentPage();
+      renderView();
     }
 
     function toggleDarkMode() {
       isDarkMode = !isDarkMode;
       document.getElementById("dark-toggle").textContent = isDarkMode ? "☀️" : "🌙";
-      document.getElementById("viewer").classList.toggle("dark-mode", isDarkMode);
-      renderCurrentPage();
+      renderView();
+    }
+
+    function toggleScrollMode() {
+      isContinuousScroll = !isContinuousScroll;
+      document.getElementById("scroll-toggle").textContent = isContinuousScroll ? "📄 Page" : "📜 Scroll";
+      renderView();
+    }
+
+    function setupMousePanning() {
+      const main = document.getElementById("main-container");
+
+      main.addEventListener("mousedown", (e) => {
+        if (e.target.tagName === "BUTTON" || e.target.classList.contains("speaker-btn")) return;
+        isMouseDown = true;
+        startX = e.pageX - main.offsetLeft;
+        startY = e.pageY - main.offsetTop;
+        scrollLeft = main.scrollLeft;
+        scrollTop = main.scrollTop;
+      });
+
+      main.addEventListener("mouseleave", () => { isMouseDown = false; });
+      main.addEventListener("mouseup", () => { isMouseDown = false; });
+
+      main.addEventListener("mousemove", (e) => {
+        if (!isMouseDown) return;
+        e.preventDefault();
+        const x = e.pageX - main.offsetLeft;
+        const y = e.pageY - main.offsetTop;
+        const walkX = (x - startX) * 1.5;
+        const walkY = (y - startY) * 1.5;
+        main.scrollLeft = scrollLeft - walkX;
+        main.scrollTop = scrollTop - walkY;
+      });
+
+      // Ctrl + Mouse Wheel Zooming
+      main.addEventListener("wheel", (e) => {
+        if (e.ctrlKey) {
+          e.preventDefault();
+          zoom(e.deltaY < 0 ? 0.1 : -0.1);
+        }
+      }, { passive: false });
     }
 
     function showSpinner(show) {
       document.getElementById("loading-spinner").style.display = show ? "block" : "none";
     }
 
-    function onImageLoaded() {
-      showSpinner(false);
-    }
-
     window.onload = init;
-    window.onresize = () => renderCurrentPage();
   </script>
 </body>
 </html>
