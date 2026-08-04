@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FlashPDF Reader - Interactive PDF Viewer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-surface: #1e293b;
+      --bg-glass: rgba(30, 41, 59, 0.85);
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --accent-light: #818cf8;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: rgba(255, 255, 255, 0.1);
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Top Bar Header */
+    header {
+      background: var(--bg-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      z-index: 100;
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text-main);
+    }
+
+    .brand-icon {
+      font-size: 1.3rem;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    select, button {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 0.45rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    select {
+      max-width: 150px;
+    }
+
+    button:hover, button:active {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* Main Content Area */
+    main {
+      flex: 1;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
+      position: relative;
+    }
+
+    .viewer-container {
+      position: relative;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      display: inline-block;
+      max-width: 100%;
+      transition: filter 0.3s ease;
+    }
+
+    .viewer-container.dark-mode {
+      background: #1e2026;
+    }
+
+    #page-img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+    }
+
+    /* Interactive Overlay Layer */
+    #overlay-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    /* Audio Speaker Button Overlay */
+    .speaker-btn {
+      position: absolute;
+      pointer-events: auto;
+      background: rgba(99, 102, 241, 0.85);
+      color: white;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+      animation: pulse 2s infinite;
+      transition: transform 0.15s ease;
+    }
+
+    .speaker-btn:active {
+      transform: scale(0.9);
+      background: var(--accent-light);
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.6); }
+      70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+    }
+
+    /* Answer Layer Toggle Button Overlay */
+    .answer-btn {
+      position: absolute;
+      pointer-events: auto;
+      background: rgba(234, 179, 8, 0.9);
+      color: #000;
+      border: 1px solid #ffffff;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Audio Player Sticky Bottom Bar */
+    .audio-bar {
+      background: var(--bg-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border-color);
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      z-index: 100;
+    }
+
+    .audio-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .audio-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    audio {
+      width: 100%;
+      height: 36px;
+      border-radius: 8px;
+    }
+
+    /* Page Navigation Footer Controls */
+    .nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      padding: 0.5rem;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-color);
+    }
+
+    .page-info {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    /* Loading Spinner */
+    .spinner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-top: 4px solid var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Glass Bar -->
+  <header>
+    <div class="brand">
+      <span class="brand-icon">⚡</span>
+      <span>FlashPDF</span>
+    </div>
+
+    <div class="controls">
+      <select id="pdf-select" onchange="loadPdf(this.value)">
+        <option value="">Loading PDFs...</option>
+      </select>
+
+      <button id="dark-toggle" onclick="toggleDarkMode()" title="Toggle Smart Dark Mode">🌙</button>
+      <button id="zoom-in" onclick="zoom(0.2)">+</button>
+      <button id="zoom-out" onclick="zoom(-0.2)">-</button>
+    </div>
+  </header>
+
+  <!-- Page Viewer Area -->
+  <main id="main-container">
+    <div class="viewer-container" id="viewer">
+      <img id="page-img" alt="PDF Page" src="" onload="onImageLoaded()">
+      <div id="overlay-layer"></div>
+      <div class="spinner" id="loading-spinner"></div>
+    </div>
+  </main>
+
+  <!-- Navigation Bar -->
+  <div class="nav-bar">
+    <button onclick="changePage(-1)">◀ Prev</button>
+    <span class="page-info" id="page-display">Page 1 / 1</span>
+    <button onclick="changePage(1)">Next ▶</button>
+  </div>
+
+  <!-- Audio Player Controls -->
+  <div class="audio-bar">
+    <div class="audio-info">
+      <span class="audio-title" id="audio-label">Tap 🔊 icon on page to play audio</span>
+      <audio id="audio-player" controls preload="auto"></audio>
+    </div>
+
+    <select id="speed-select" onchange="setPlaybackSpeed(this.value)" style="width: auto;">
+      <option value="0.75">0.75x</option>
+      <option value="1.0" selected>1.0x</option>
+      <option value="1.25">1.25x</option>
+      <option value="1.5">1.5x</option>
+      <option value="2.0">2.0x</option>
+    </select>
+  </div>
+
+  <script>
+    let currentPdf = "";
+    let currentPage = 0;
+    let totalPages = 1;
+    let currentScale = 1.5;
+    let isDarkMode = false;
+    let visibleAnswers = new Set();
+    let originalPageSize = [600, 800];
+
+    async function init() {
+      try {
+        const res = await fetch("/api/pdfs");
+        const pdfs = await res.json();
+        const select = document.getElementById("pdf-select");
+        select.innerHTML = "";
+        
+        if (pdfs.length === 0) {
+          select.innerHTML = `<option value="">No PDFs found</option>`;
+          return;
+        }
+
+        pdfs.forEach(pdf => {
+          const opt = document.createElement("option");
+          opt.value = pdf;
+          opt.textContent = pdf;
+          select.appendChild(opt);
+        });
+
+        loadPdf(pdfs[0]);
+      } catch (err) {
+        console.error("Failed to load PDF list:", err);
+      }
+    }
+
+    async function loadPdf(pdfName) {
+      if (!pdfName) return;
+      currentPdf = pdfName;
+      currentPage = 0;
+      visibleAnswers.clear();
+
+      showSpinner(true);
+      const res = await fetch(`/api/open?pdf=${encodeURIComponent(pdfName)}`);
+      const data = await res.json();
+      totalPages = data.total_pages;
+
+      renderCurrentPage();
+    }
+
+    async function renderCurrentPage() {
+      showSpinner(true);
+      document.getElementById("page-display").textContent = `Page ${currentPage + 1} / ${totalPages}`;
+
+      // Build image URL
+      let imgUrl = `/api/page?pdf=${encodeURIComponent(currentPdf)}&page=${currentPage}&scale=${currentScale}&dark=${isDarkMode}`;
+      visibleAnswers.forEach(ans => {
+        imgUrl += `&visible=${encodeURIComponent(ans)}`;
+      });
+
+      const img = document.getElementById("page-img");
+      img.src = imgUrl;
+
+      // Fetch annotation coordinates
+      const res = await fetch(`/api/interactivity?pdf=${encodeURIComponent(currentPdf)}&page=${currentPage}`);
+      const inter = await res.json();
+      originalPageSize = inter.page_size;
+
+      renderOverlays(inter);
+    }
+
+    function renderOverlays(interactivity) {
+      const overlayLayer = document.getElementById("overlay-layer");
+      overlayLayer.innerHTML = "";
+
+      const img = document.getElementById("page-img");
+      const imgWidth = img.clientWidth || (originalPageSize[0] * currentScale);
+      const imgHeight = img.clientHeight || (originalPageSize[1] * currentScale);
+
+      const scaleX = imgWidth / originalPageSize[0];
+      const scaleY = imgHeight / originalPageSize[1];
+
+      // 1. Render Speaker Audio Buttons
+      interactivity.speakers.forEach(s => {
+        const btn = document.createElement("div");
+        btn.className = "speaker-btn";
+
+        // Convert PDF coordinates (bottom-left origin) -> Screen coordinates (top-left origin)
+        const [x1, y1, x2, y2] = s.rect;
+        const width = Math.max((x2 - x1) * scaleX, 32);
+        const height = Math.max((y2 - y1) * scaleY, 32);
+        const left = x1 * scaleX;
+        const top = (originalPageSize[1] - y2) * scaleY;
+
+        btn.style.left = `${left}px`;
+        btn.style.top = `${top}px`;
+        btn.style.width = `${width}px`;
+        btn.style.height = `${height}px`;
+        btn.textContent = "🔊";
+        btn.title = `Play Audio: ${s.audio}`;
+
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          playAudio(s.audio);
+        };
+
+        overlayLayer.appendChild(btn);
+      });
+
+      // 2. Render Answer Overlay Toggle Buttons
+      interactivity.hide_actions.forEach(h => {
+        const btn = document.createElement("button");
+        btn.className = "answer-btn";
+
+        const [x1, y1, x2, y2] = h.rect;
+        const left = x1 * scaleX;
+        const top = (originalPageSize[1] - y2) * scaleY;
+
+        btn.style.left = `${left}px`;
+        btn.style.top = `${top}px`;
+
+        const isRevealed = visibleAnswers.has(h.target_field);
+        btn.textContent = isRevealed ? "❌ Close" : "💡 Answer";
+
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          if (isRevealed) {
+            visibleAnswers.delete(h.target_field);
+          } else {
+            visibleAnswers.add(h.target_field);
+          }
+          renderCurrentPage();
+        };
+
+        overlayLayer.appendChild(btn);
+      });
+    }
+
+    function playAudio(filename) {
+      const audioPlayer = document.getElementById("audio-player");
+      const audioLabel = document.getElementById("audio-label");
+
+      audioLabel.textContent = `▶ Playing: ${filename}`;
+      audioPlayer.src = `/api/audio/${encodeURIComponent(filename)}`;
+      audioPlayer.play();
+    }
+
+    function setPlaybackSpeed(speed) {
+      const audioPlayer = document.getElementById("audio-player");
+      audioPlayer.playbackRate = parseFloat(speed);
+    }
+
+    function changePage(delta) {
+      const newPage = currentPage + delta;
+      if (newPage >= 0 && newPage < totalPages) {
+        currentPage = newPage;
+        renderCurrentPage();
+      }
+    }
+
+    function zoom(delta) {
+      currentScale = Math.min(Math.max(currentScale + delta, 0.8), 3.0);
+      renderCurrentPage();
+    }
+
+    function toggleDarkMode() {
+      isDarkMode = !isDarkMode;
+      document.getElementById("dark-toggle").textContent = isDarkMode ? "☀️" : "🌙";
+      document.getElementById("viewer").classList.toggle("dark-mode", isDarkMode);
+      renderCurrentPage();
+    }
+
+    function showSpinner(show) {
+      document.getElementById("loading-spinner").style.display = show ? "block" : "none";
+    }
+
+    function onImageLoaded() {
+      showSpinner(false);
+    }
+
+    window.onload = init;
+    window.onresize = () => renderCurrentPage();
+  </script>
+</body>
+</html>
